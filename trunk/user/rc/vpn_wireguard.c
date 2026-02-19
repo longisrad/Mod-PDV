@@ -53,7 +53,6 @@ start_wireguard_client(void)
     if (ret == 0)
     {
         set_vpn_balancing(IFNAME_CLIENT_WG, 0);
-        nvram_set_int_temp("vpnc_state_t", 2);
     }
     return ret;
 }

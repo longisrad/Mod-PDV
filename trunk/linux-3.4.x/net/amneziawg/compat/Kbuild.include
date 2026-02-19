@@ -46,7 +46,7 @@ endif
 
 ifeq ($(wildcard $(srctree)/include/net/ip_tunnels.h),)
 ccflags-y += -I$(kbuild-dir)/compat/ip_tunnel/include
-wireguard-y += compat/ip_tunnel/ip_tunnel.o
+amneziawg-y += compat/ip_tunnel/ip_tunnel.o
 endif
 
 ifeq ($(wildcard $(srctree)/include/net/udp_tunnel.h),)
@@ -147,5 +147,5 @@ endif
 
 ifdef ISPADAVAN
 ccflags-y += -I$(kbuild-dir)/compat/sock/include
-wireguard-y += compat/sock/sock.o
+amneziawg-y += compat/sock/sock.o
 endif

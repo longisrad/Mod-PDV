@@ -1,6 +1,6 @@
 # https://www.zlib.net
 
-SRC_NAME = zlib-1.3.1
+SRC_NAME = zlib-1.3.2
 SRC_URL  = https://www.zlib.net/$(SRC_NAME).tar.xz
 
 all: download_test extract_test config_test
@@ -28,7 +28,7 @@ config_test:
 configure:
 	( mkdir -p $(SRC_NAME)/build && cd $(SRC_NAME)/build ; \
 	cmake -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_INSTALL_PREFIX=$(STAGEDIR) \
+	-DCMAKE_INSTALL_PREFIX=/ \
 	-DCMAKE_TOOLCHAIN_FILE=$(ROOTDIR)/include/cross-mipsel-linux.cmake .. \
 	)
 
@@ -39,7 +39,7 @@ clean:
 	rm -f config_done
 
 install:
-	$(MAKE) -C $(SRC_NAME)/build install DESTDIR=""
+	$(MAKE) -C $(SRC_NAME)/build install DESTDIR="$(STAGEDIR)"
 
 romfs:
 	cp -fP $(DESTDIR)/lib/libz.so* $(ROMFSDIR)/lib

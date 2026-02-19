@@ -18,7 +18,6 @@ IF_DNS="$(nvram get vpnc_wg_if_dns | tr -s ',' ' ')"
 unset DEFAULT
 [ "$(nvram get vpnc_dgw)" = "1" ] && DEFAULT=1
 
-LOCK_DELAY="/var/lock/wgc_start_delay.lock"
 LOCK_WATCHDOG="/var/lock/wgc_watchdog.lock"
 
 PEER_PUBLIC="$(nvram get vpnc_wg_peer_public)"
@@ -79,6 +78,16 @@ is_started()
     [ -d "/sys/class/net/${IF_NAME}" ]
 }
 
+set_state()
+{
+    nvram settmp vpnc_state_t=$1
+}
+
+get_state()
+{
+    nvram get vpnc_state_t
+}
+
 prepare_wg()
 {
     modprobe -q $MODULE
@@ -117,11 +126,9 @@ setconf_wg()
         awg="$(cps)"
     fi
 
-    timeout 10 2>&1 nslookup $PEER_ENDPOINT >/dev/null 2>&1
+    timeout 30 2>&1 nslookup $PEER_ENDPOINT >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        [ "$(nvram get vpnc_state_t)" = "2" ] && log "not found host $PEER_ENDPOINT"
-        set_state 0
-        return 1
+        error "not found host $PEER_ENDPOINT"
     fi
 
     cat > "/tmp/${IF_NAME}.conf.$$" <<EOF
@@ -151,9 +158,10 @@ EOF
 
     if ! echo $res | grep -q "error"; then
         log "configuration $IF_NAME applied successfully"
-        $WG show $IF_NAME | grep -A 5 "peer:" | while read i; do
+        $WG show $IF_NAME | grep -A 5 "peer:" | grep -v "transfer" | while read i; do
             log "$i"
         done
+        send_ping
     else
         echo "$res" | while read i; do
             log "$i"
@@ -189,7 +197,6 @@ add_default_route()
 {
     ip rule add fwmark $FWMARK table $TABLE pref $PREF_WG
     ip route replace default dev $IF_NAME table $TABLE 2>/dev/null \
-        && log "add default route dev $IF_NAME table $TABLE" \
         || error "unable to add default route dev $IF_NAME table $TABLE"
 }
 
@@ -227,66 +234,53 @@ wg_if_init()
     local if_ip=$(ip addr show dev $IF_NAME | awk '/inet/{print $2}')
     [ "$if_ip" ] || error "$IF_NAME interface address not set"
 
-    setconf_wg || error
-
     if ip link set $IF_NAME up; then
         log "client started, interface: $IF_NAME, addresses: "$if_ip
     else
         error "$IF_NAME startup failed"
     fi
-
-    send_ping
-}
-
-set_state()
-{
-    nvram set vpnc_state_t=$1
-}
-
-log_latest_connect()
-{
-    if [ "$(nvram get vpnc_state_t)" = "1" ]; then
-        log "latest handshake was more than 5 minutes ago"
-    fi
 }
 
 log_try_connect()
 {
-    if [ ! "$(nvram get vpnc_state_t)" = "2" ]; then
-        log "trying connect to $PEER_ENDPOINT"
-        set_state 2
-    fi
+    set_state 2
+    [ -n "$(nvram get wg_try_connect_t)" ] && return
+    log "trying connect to $PEER_ENDPOINT"
 }
 
 log_unable_connect()
 {
+    set_state 0
+    [ -n "$(nvram get wg_try_connect_t)" ] && return
     log "unable connect to $PEER_ENDPOINT"
-    set_state 2
+
+    # prevent multiple messages
+    nvram settmp wg_try_connect_t=1
 }
 
 log_success_connect()
 {
-    if [ ! "$(nvram get vpnc_state_t)" = "1" ]; then
-        log "successfully connected"
-        set_state 1
-    fi
+    [ "$(get_state)" = "1" ] && return
+    log "successfully connected"
+    set_state 1
+    nvram unset wg_try_connect_t
 }
 
-reconnect_wg()
+connect_wg()
 {
-    # reconnect using current config
+    # $1 reconnect
+
+    [ "$(nvram get link_internet)" = 1 ] || return 1
 
     if ! check_connected; then
-        setconf_wg reconnect || die
-        check_connection_status
-        if [ $? -eq 0 ]; then
+        setconf_wg $1
+        if check_connection_status; then
             log_success_connect
             return 0
         else
+            log_unable_connect
             return 1
         fi
-    else
-        log_success_connect
     fi
 }
 
@@ -302,21 +296,25 @@ send_ping()
 
 check_connected()
 {
-    local lh now
-
     is_started || die
 
-    lh=$(get_latest_handshakes)
-    [ "$lh" ] || return 1
-    [ "$lh" -eq 0 ] && return 1
+    local lh=$(get_latest_handshakes)
+    local lh_success=$(nvram get wg_latest_handshakes_t)
+    local now=$(date +%s)
 
-    now=$(date +%s)
-    if [ "$((now - lh))" -gt 300 ]; then
-        log_latest_connect
-        return 1
-    elif [ "$((now - lh))" -gt 30 ]; then
-        send_ping
+    if [ -n "$lh_success" ] && [ "$(( now -  $lh_success ))" -gt 300 ]; then
+        log "unable to connect for more than 5 minutes, emergency restart"
+        nvram settmp wg_need_restart_t=1
+        exit
     fi
+
+    if [ -z "$lh" ] || [ "$lh" -eq 0 ]; then
+        return 1
+    fi
+
+    [ "$((now - lh))" -gt 15 ] && send_ping
+
+    nvram settmp wg_latest_handshakes_t=$lh
 
     return 0
 }
@@ -324,6 +322,7 @@ check_connected()
 check_connection_status()
 {
     local loop=0
+
     while is_started; do
         [ "$loop" -ge 10 ] && break
         check_connected && return 0
@@ -338,38 +337,48 @@ start_wg()
 {
     is_started && die "already started"
 
-    delayed_start &
-    echo $! > "$LOCK_DELAY"
-}
+    (
+        flock -n 200 || exit 1
 
-delayed_start()
-{
-    # waiting restart zapret firewall rules
-    sleep 2
+        if [ "$(nvram get link_internet)" = 1 ]; then
+            nvram unset wg_need_restart_t
+        else
+            nvram settmp wg_need_restart_t=1
+            exit 1
+        fi
 
-    set_state 2
-    ipset_create
-    wg_if_init
-    add_route
-    wg_setdns
-    start_fw
+        nvram settmp wg_latest_handshakes_t=$(date +%s)
+        nvram unset wg_try_connect_t
+        set_state 0
 
-    if check_connection_status; then
-        log_success_connect
-    else
-        log_unable_connect
-    fi
-    rm -f "$LOCK_DELAY"
+        ipset_create
+        wg_if_init
+        connect_wg
+        add_route
+        wg_setdns
+        start_fw
+
+        call_post_script start
+
+    ) 200>$LOCK_WATCHDOG
 }
 
 watchdog()
 {
+    if [ -n "$(nvram get wg_need_restart_t)" ]; then
+        stop_wg
+        start_wg
+        exit
+    fi
+
     is_started || return
-    [ -f "$LOCK_DELAY" ] && return
 
     (
         flock -n 200 || exit 1
-        reconnect_wg
+
+        connect_wg reconnect
+        call_post_script watchdog
+
     ) 200>$LOCK_WATCHDOG
 }
 
@@ -405,8 +414,32 @@ stop_wg()
     ip link del dev $IF_NAME 2>/dev/null \
         && log "client stopped"
 
-    rm -f "$LOCK_DELAY"
     rm -f "$LOCK_WATCHDOG"
+
+    call_post_script stop
+    nvram unset wg_need_restart_t
+}
+
+call_post_script()
+{
+    [ -s "$POST_SCRIPT" ] && [ -x "$POST_SCRIPT" ] || return
+
+    MODULE="$MODULE" \
+    WG="$WG" \
+    IF_NAME="$IF_NAME" \
+    IF_ADDR="$IF_ADDR" \
+    IF_MTU="$IF_MTU" \
+    IF_DNS="$IF_DNS" \
+    PEER_PORT="$PEER_PORT" \
+    PEER_ENDPOINT="$PEER_ENDPOINT" \
+    PEER_ALLOWEDIPS="$PEER_ALLOWEDIPS" \
+    NV_CLIENTS_LIST="$NV_CLIENTS_LIST" \
+    NV_IPSET_LIST="$NV_IPSET_LIST" \
+    TABLE="$TABLE" \
+    FWMARK="$FWMARK" \
+    PREF_WG="$PREF_WG" \
+    PREF_MAIN="$PREF_MAIN" \
+    "$POST_SCRIPT" "$1"
 }
 
 filter_ipv4()
@@ -577,17 +610,15 @@ case $1 in
 
     update)
         update_wg
+        call_post_script update
     ;;
 
     reload)
         reload_wg
+        call_post_script reload
     ;;
 
     watchdog)
         watchdog
     ;;
 esac
-
-IFNAME=$IF_NAME
-
-[ -s "$POST_SCRIPT" -a -x "$POST_SCRIPT" ] && . "$POST_SCRIPT"

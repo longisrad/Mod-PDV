@@ -71,6 +71,7 @@ configure:
 	$(call set_ext,CONFIG_NETFILTER_XT_MATCH_CONNTRACK,libxt_conntrack.)
 	$(call set_ext,CONFIG_NETFILTER_XT_MATCH_PHYSDEV,libxt_physdev.)
 	$(call set_ext,CONFIG_NETFILTER_XT_MATCH_STRING,libxt_string.)
+	$(call set_ext,CONFIG_NETFILTER_XT_MATCH_SOCKET,libxt_socket.)
 	$(call set_ext,CONFIG_NETFILTER_XT_TARGET_NFQUEUE,libxt_NFQUEUE.)
 	$(call set_ext,CONFIG_NETFILTER_XT_TARGET_TPROXY,libxt_TPROXY.)
 	$(call set_ext,CONFIG_NETFILTER_XT_MATCH_POLICY,libxt_policy.)

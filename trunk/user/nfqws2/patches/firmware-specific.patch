@@ -1,5 +1,5 @@
---- zapret2-0.9.3.orig/ip2net/Makefile
-+++ zapret2-0.9.3/ip2net/Makefile
+--- zapret2-0.9.4.1.orig/ip2net/Makefile
++++ zapret2-0.9.4.1/ip2net/Makefile
 @@ -1,6 +1,6 @@
  CC ?= cc
  OPTIMIZE ?= -Os
@@ -8,14 +8,14 @@
  CFLAGS_BSD = -Wno-address-of-packed-member
  CFLAGS_WIN = -static
  LIBS = 
---- zapret2-0.9.3.orig/nfq2/Makefile
-+++ zapret2-0.9.3/nfq2/Makefile
+--- zapret2-0.9.4.1.orig/nfq2/Makefile
++++ zapret2-0.9.4.1/nfq2/Makefile
 @@ -1,15 +1,14 @@
  CC ?= cc
  PKG_CONFIG ?= pkg-config
  OPTIMIZE ?= -Os
--MINSIZE ?= -flto=auto -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables
-+MINSIZE ?= -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables
+-MINSIZE ?= -flto=auto -ffunction-sections -fdata-sections
++MINSIZE ?= -ffunction-sections -fdata-sections
  CFLAGS += -std=gnu99 $(OPTIMIZE) $(MINSIZE)
  CFLAGS_LINUX = -Wno-alloc-size-larger-than
 -CFLAGS_SYSTEMD = -DUSE_SYSTEMD
@@ -28,8 +28,8 @@
  LDFLAGS_ANDROID = -llog
  LIBS =
  LIBS_LINUX = -lz -lnetfilter_queue -lnfnetlink -lmnl -lm
---- zapret2-0.9.3.orig/nfq2/sec.c
-+++ zapret2-0.9.3/nfq2/sec.c
+--- zapret2-0.9.4.1.orig/nfq2/sec.c
++++ zapret2-0.9.4.1/nfq2/sec.c
 @@ -14,7 +14,7 @@
  
  #include <sys/prctl.h>
@@ -81,8 +81,8 @@
  bool checkpcap(uint64_t caps)
  {
  	if (!caps) return true; // no special caps reqd
---- zapret2-0.9.3.orig/nfq2/sec.h
-+++ zapret2-0.9.3/nfq2/sec.h
+--- zapret2-0.9.4.1.orig/nfq2/sec.h
++++ zapret2-0.9.4.1/nfq2/sec.h
 @@ -2,11 +2,12 @@
  
  #include <sys/types.h>
@@ -108,5 +108,5 @@
 +//#define arch_nr (offsetof(struct seccomp_data, arch))
 +//#define syscall_arg(x) (offsetof(struct seccomp_data, args[x]))
  
- #ifndef AUDIT_ARCH_RISCV64
- #define AUDIT_ARCH_RISCV64 (EM_RISCV | __AUDIT_ARCH_64BIT | __AUDIT_ARCH_LE) 
+ #ifndef __AUDIT_ARCH_64BIT
+ #define __AUDIT_ARCH_64BIT 0x80000000

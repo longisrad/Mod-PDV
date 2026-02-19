@@ -16,9 +16,8 @@ export CONFIG_TOOLCHAIN_DIR="${ROOTDIR}/../toolchain/out"
 kernel_id="3.4.x"
 kernel_cf=""
 kernel_tf=""
-busybox_id="1.3X.X"
 busybox_cf="$ROOTDIR/configs/boards/busybox.config"
-busybox_tf="$ROOTDIR/user/busybox/busybox-${busybox_id}/.config"
+busybox_tf="$ROOTDIR/stage/busybox.config"
 board_h=""
 board_mk=""
 paragon_hfsplus=0
@@ -123,6 +122,7 @@ rm -rf $ROOTDIR/romfs
 rm -rf $ROOTDIR/images
 mkdir -p $ROOTDIR/romfs
 mkdir -p $ROOTDIR/images
+mkdir -p $ROOTDIR/stage
 
 # load source kernel config
 . "$kernel_cf"
@@ -476,6 +476,13 @@ if [ "$CONFIG_FIRMWARE_INCLUDE_IFB" != "y" ] ; then
 	func_disable_kernel_param "CONFIG_NET_CLS_ACT"
 	func_disable_kernel_param "CONFIG_IFB"
 fi
+############################# TPROXY ##################################
+if [ "$CONFIG_FIRMWARE_INCLUDE_TPROXY" = "y" ] ; then
+	func_enable_kernel_param "CONFIG_EXPERIMENTAL"
+	func_enable_kernel_param_as_m "CONFIG_NETFILTER_TPROXY"
+	func_enable_kernel_param_as_m "CONFIG_NETFILTER_XT_MATCH_SOCKET"
+	func_enable_kernel_param_as_m "CONFIG_NETFILTER_XT_TARGET_TPROXY"
+fi
 ############################# NFSC ####################################
 if [ "$CONFIG_FIRMWARE_INCLUDE_NFSC" != "y" ] ; then
 	func_disable_kernel_param "CONFIG_FSCACHE"
@@ -501,7 +508,7 @@ if [ "$CONFIG_FIRMWARE_INCLUDE_AUDIO" != "y" ] || [ "$CONFIG_FIRMWARE_ENABLE_USB
 	func_disable_kernel_param "CONFIG_FW_LOADER"
 	func_disable_kernel_param "CONFIG_SOUND"
 fi
-############################# ZRAM SUPPORT ############################
+############################# ZRAM ####################################
 if [ "$CONFIG_FIRMWARE_INCLUDE_ZRAM" = "y" ] ; then
 	func_enable_kernel_param "CONFIG_SWAP"
 	func_enable_kernel_param "CONFIG_ZSMALLOC"
@@ -517,31 +524,33 @@ if [ "$CONFIG_FIRMWARE_INCLUDE_ZRAM" = "y" ] ; then
 	func_enable_busybox_param "CONFIG_FEATURE_SWAPONOFF_LABEL"
 	func_enable_busybox_param "CONFIG_FEATURE_SWAPON_PRI"
 fi
-############################## EOIP SUPPORT ###########################
+############################# EOIP ####################################
 if [ "$CONFIG_FIRMWARE_INCLUDE_EOIP" = "y" ] ; then
 	func_enable_kernel_param "CONFIG_NET_EOIP"
 fi
-
+############################# WIREGUARD ###############################
 if [ "$CONFIG_FIRMWARE_INCLUDE_WIREGUARD" = "y" ] ; then
 	func_enable_kernel_param_as_m "CONFIG_WIREGUARD"
 #	func_enable_kernel_param "CONFIG_WIREGUARD_DEBUG"
 fi
-
+############################# AMNEZIAWG ###############################
 if [ "$CONFIG_FIRMWARE_INCLUDE_AMNEZIAWG" = "y" ]; then
 	func_disable_kernel_param "CONFIG_WIREGUARD"
 	func_enable_kernel_param_as_m "CONFIG_AMNEZIAWG"
-#        func_enable_kernel_param "CONFIG_AMNEZIAWG_DEBUG"
+#	func_enable_kernel_param "CONFIG_AMNEZIAWG_DEBUG"
 fi
-
+############################# SHORTCUT FORWARD ENGINE #################
 if [ "$CONFIG_FIRMWARE_INCLUDE_SHORTCUT_FE" = "y" ] ; then
 	func_enable_kernel_param "CONFIG_SHORTCUT_FE"
 	func_enable_kernel_param "CONFIG_NF_CONNTRACK_EVENTS"
 	func_enable_kernel_param "CONFIG_NF_CONNTRACK_CHAIN_EVENTS"
 fi
-############################## Default kernel modules #################
+############################# DEFAULT KERNEL MODULES ##################
+### nfqueue
 func_enable_kernel_param_as_m "CONFIG_NETFILTER_NETLINK_QUEUE"
 func_enable_kernel_param_as_m "CONFIG_NETFILTER_XT_TARGET_NFQUEUE"
 #######################################################################
+
 echo --------------------------MAKE-DEP--------------------------------
 make dep
 echo --------------------------MAKE-ALL--------------------------------

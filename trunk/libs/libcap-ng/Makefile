@@ -1,5 +1,6 @@
-SRC_NAME=libcap-ng-0.9
-SRC_URL=https://github.com/stevegrubb/libcap-ng/archive/refs/tags/v0.9.tar.gz
+SRC_VER = 0.9.1
+SRC_NAME = libcap-ng-$(SRC_VER)
+SRC_URL = https://github.com/stevegrubb/libcap-ng/archive/refs/tags/v$(SRC_VER).tar.gz
 
 all: download_test extract_test config_test
 	$(MAKE) -C $(SRC_NAME)

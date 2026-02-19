@@ -3,16 +3,6 @@
 SRC_NAME = curl-8.18.0
 SRC_URL = https://github.com/curl/curl/releases/download/curl-8_18_0/$(SRC_NAME).tar.xz
 
-ifneq (,$(filter y,$(QUIC_ENABLED) $(CONFIG_FIRMWARE_INCLUDE_OPENSSL_35)))
-SSL_VER = 3.5
-else ifeq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSL_11),y)
-SSL_VER = 1.1
-else ifeq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSL_10),y)
-SSL_VER = 1.0
-else
-SSL_VER = 3.0
-endif
-
 ifeq ($(shell LC_ALL=C [ $(SSL_VER) '<' 3.0 ] && echo 1), 1)
 SRC_NAME = curl-8.17.0
 SRC_URL = https://github.com/curl/curl/releases/download/curl-8_17_0/$(SRC_NAME).tar.xz
@@ -33,7 +23,8 @@ all: download_test extract_test config_test
 
 download_test:
 	( if [ ! -f $(SRC_NAME).tar.xz ]; then \
-		wget -t5 -T20 --no-check-certificate -O $(SRC_NAME).tar.xz $(SRC_URL) || rm -f $(SRC_NAME).tar.xz; \
+		wget -t5 -T20 --no-check-certificate -O $(SRC_NAME).tar.xz $(SRC_URL) \
+			|| rm -f $(SRC_NAME).tar.xz; \
 	fi )
 
 extract_test:

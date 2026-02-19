@@ -138,6 +138,16 @@ ifneq (,$(filter y, $(CONFIG_FIRMWARE_INCLUDE_QUIC) $(CONFIG_FIRMWARE_INCLUDE_QU
 QUIC_ENABLED=y
 endif
 
+ifneq (,$(filter y,$(QUIC_ENABLED) $(CONFIG_FIRMWARE_INCLUDE_OPENSSL_35)))
+SSL_VER = 3.5
+else ifeq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSL_11),y)
+SSL_VER = 1.1
+else ifeq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSL_10),y)
+SSL_VER = 1.0
+else
+SSL_VER = 3.0
+endif
+
 dir_y						+= libz
 dir_$(LIBS_INCLUDE_LIBLZO)			+= liblzo
 dir_$(LIBS_INCLUDE_LIBNL)			+= libnl

@@ -2,7 +2,7 @@
 # https://gitlab.torproject.org/tpo/core/tor
 # https://deb.torproject.org/torproject.org/pool/main/t/tor
 
-SRC_NAME = tor-0.4.8.22
+SRC_NAME = tor-0.4.9.5
 SRC_URL = https://dist.torproject.org/$(SRC_NAME).tar.gz
 
 CFLAGS += $(COPT) -ffunction-sections -fdata-sections -fvisibility=hidden
@@ -13,7 +13,8 @@ all: download_test extract_test config_test
 
 download_test:
 	( if [ ! -f $(SRC_NAME).tar.gz ]; then \
-		wget -t5 -T20 --no-check-certificate -O $(SRC_NAME).tar.gz $(SRC_URL) || rm -f $(SRC_NAME).tar.gz; \
+		wget -t5 -T20 --no-check-certificate -O $(SRC_NAME).tar.gz $(SRC_URL) \
+			|| rm -f $(SRC_NAME).tar.gz; \
 	fi )
 
 extract_test:
