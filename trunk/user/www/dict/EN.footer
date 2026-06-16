@@ -1843,3 +1843,19 @@ Service_DNSCrypt_Mode_Menu1=Router's DNS
 ZapretIpsetLists=Lists of IP addresses/networks
 ZapretIpsetCustomList=inclusions
 ZapretIpsetExclusionList=exclusions
+
+# --- TÍNH NĂNG ADD-ON: ADGUARD HOME & SQM ---
+menu5_13_1=AdGuard Home
+menu5_14_1=SQM
+Services_Menu_9=AdGuard Home
+Services_Menu_10=SQM
+AdGuardHome_Desc=AdGuard Home is a network-wide software for blocking ads & tracking. After you set it up, it will cover ALL your home devices without any client-side software.
+AdGuardHome_Toggle=Enable AdGuard Home
+AdGuardHome_WebIf=AdGuard WebUI
+AdGuardHome_Port=WebUI Port
+AdGuard_InvalidPort=Invalid Port! Please enter a port between 1024 and 65535.
+SQM_Desc=Smart Queue Management (SQM) improves your network performance by managing bufferbloat using active queue management (AQM) algorithms like CAKE or FQ_CoDel.
+SQM_Toggle=Enable SQM
+SQM_DL=Download Speed
+SQM_UL=Upload Speed
+# --------------------------------------------
