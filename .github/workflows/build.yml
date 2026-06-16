@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04 # Ubuntu 20.04 là môi trường ổn định nhất để biên dịch Toolchain Padavan
+    runs-on: ubuntu-22.04 # Nâng cấp lên Ubuntu 22.04 do phiên bản 20.04 đã bị GitHub khai tử
     steps:
       - name: Checkout mã nguồn
         uses: actions/checkout@v3
