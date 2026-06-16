@@ -820,7 +820,7 @@ struct nvram_pair router_defaults[] = {
 	{ "vpnc_ov_auth", "0" },
 	{ "vpnc_ov_mdig", "1" },
 	{ "vpnc_ov_ciph", "15" },
-	{ "vpnc_ov_ncp_clist", DEF_OVC_CIPH_LIST },
+	{ "vpnc_ov_ncp_clist", DEF_OVPNC_CIPH_LIST },
 	{ "vpnc_ov_compress", "0" },
 	{ "vpnc_ov_atls", "0" },
 #if defined (APP_WIREGUARD)
