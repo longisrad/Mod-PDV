@@ -8,10 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04 # Nâng cấp lên Ubuntu 22.04 do phiên bản 20.04 đã bị GitHub khai tử
+    runs-on: ubuntu-22.04 # Môi trường Ubuntu 22.04 ổn định
     steps:
       - name: Checkout mã nguồn
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Nâng cấp lên v4 để tránh lỗi chặn phiên bản cũ
 
       - name: Khởi tạo môi trường biên dịch
         run: |
@@ -37,7 +37,7 @@ jobs:
           ./build_firmware_modify NEWIFI3
 
       - name: Đóng gói và Upload Firmware lên Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # Nâng cấp lên v4 để tránh lỗi chặn phiên bản cũ
         with:
           name: Padavan_NEWIFI3_Firmware
           path: trunk/images/*.trx
