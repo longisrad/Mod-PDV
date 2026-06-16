@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title><#Web_Title#> - <#menu5_13_1#></title>
+<title><#Web_Title#> - <#menu5_14_1#></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="-1">
@@ -24,23 +24,19 @@
 var $j = jQuery.noConflict();
 
 $j(document).ready(function() {
-    init_itoggle('agh_enabled', change_agh_enabled);
-    init_itoggle('adguard_replace_dns');
-    change_agh_enabled();
+    init_itoggle('sqm_enable', change_sqm_enable);
+    change_sqm_enable();
 });
 
 </script>
-<script>
 
+<script>
 <% login_state_hook(); %>
 
 function initial(){
     show_banner(1);
-    show_menu(5,11,1);
+    show_menu(5,12,1);
     show_footer();
-	if (!login_safe())
-		textarea_scripts_enabled(0);
-
 }
 
 function applyRule(){
@@ -48,40 +44,60 @@ function applyRule(){
         showLoading();
         
         document.form.action_mode.value = " Apply ";
-        document.form.current_page.value = "/Advanced_AdGuardHome_Content.asp";
+        document.form.current_page.value = "/Advanced_SQM_Content.asp";
         document.form.next_page.value = "";
         
         document.form.submit();
     }
 }
 
-function validForm(){
-    var v = document.form.adguard_port.value
-    if (v < 1024 || v > 65535) {
-        alert("<#AdGuard_InvalidPort#>");
-        return false;
-    }
-    return true;
-}
-
-function change_agh_enabled(){
-    var v = document.form.agh_enabled.value;
-    showhide_div("adguard_replace_dns", v)
-    showhide_div("adguard_port", v);
-}
-
 function done_validating(action){
     refreshpage();
 }
 
-function button_AdGuardHome_wan_port(){
-		var port =  document.form.adguard_port.value;
-		var porturl ='http://' + window.location.hostname + ":" + port;
-		//alert(porturl);
-		window.open(porturl,'AdGuardHome_wan_port');
+function change_sqm_enable(){
+    var v = document.form.sqm_enable[0].checked;
+    showhide_div("sqm_download_tr", v);
+    showhide_div("sqm_upload_tr", v);
+    showhide_div("sqm_qdisc_tr", v);
 }
 
+function validForm(){
+    if (!document.form.sqm_enable[0].checked) {
+        return true;
+    }
+
+    var upload_speed = document.form.sqm_upload.value;
+    var download_speed = document.form.sqm_download.value;
+
+    if (upload_speed == "" || download_speed == "") {
+        alert("Please fill in all the fields.");
+        return false;
+    }
+
+    if (!isNaN(upload_speed) || !isNaN(download_speed)) {
+        var ul = Number.parseFloat(upload_speed);
+        var dl = Number.parseFloat(download_speed);
+        if (!Number.isInteger(ul) || !Number.isInteger(dl)) {
+            alert("Please enter a valid value.");
+            return false;
+        }
+    }
+    else 
+    {
+        alert("Please enter a valid value.");
+        return false;
+    }
+
+    if (upload_speed < 0 || download_speed < 0) {
+        alert("Please enter a valid integer for upload and download speed.");
+        return false;
+    }
+
+    return true;
+}
 </script>
+
 </head>
 
 <body onload="initial();" onunLoad="return unload_body();">
@@ -102,7 +118,7 @@ function button_AdGuardHome_wan_port(){
 
     <form method="post" name="form" id="ruleForm" action="/start_apply.htm" target="hidden_frame">
 
-    <input type="hidden" name="current_page" value="Advanced_AdGuardHome_Content.asp">
+    <input type="hidden" name="current_page" value="Advanced_SQM_Content.asp">
     <input type="hidden" name="next_page" value="">
     <input type="hidden" name="next_host" value="">
     <input type="hidden" name="sid_list" value="ExtraApplications;">
@@ -130,51 +146,46 @@ function button_AdGuardHome_wan_port(){
                 <div class="row-fluid">
                     <div class="span12">
                         <div class="box well grad_colour_dark_blue">
-                            <h2 class="box_head round_top"><#menu5_13_1#></h2>
+                            <h2 class="box_head round_top"><#menu5_14_1#></h2>
                             <div class="round_bottom">
                                 <div class="row-fluid">
                                     <div id="tabMenu" class="submenuBlock"></div>
-                                    <div class="alert alert-info" style="margin: 10px;"> <#AdGuardHome_Desc#> <a href="https://adguard.com/en/adguard-home/overview.html" target="blank">AdGuard Home</a>
+                                    <div class="alert alert-info" style="margin: 10px;"> <#SQM_Desc#></a>
                                     <span style="color:#FF0000;" class=""></span></div>
 
                                     <table width="100%" align="center" cellpadding="4" cellspacing="0" class="table">
                                         <tr>
                                             <th colspan="4" style="background-color: #E3E3E3;">Status</th>
                                         </tr>
-                                        <tr id="AdGuardHome_enable_tr" >
-                                            <th width="50%"><#AdGuardHome_Toggle#></th>
+                                        <tr id="sqm_enable_tr" > <th width="50%"><#SQM_Toggle#></th>
                                             <td>
-                                                <div class="main_itoggle">
-                                                    <div id="agh_enabled_on_of">
-                                                        <input type="checkbox" id="agh_enabled_fake" <% nvram_match_x("", "agh_enabled", "1", "value=1 checked"); %><% nvram_match_x("", "agh_enabled", "0", "value=0"); %> >
+                                                    <div class="main_itoggle">
+                                                    <div id="sqm_enable_on_of">
+                                                        <input type="checkbox" id="sqm_enable_fake" <% nvram_match_x("", "sqm_enable", "1", "value=1 checked"); %><% nvram_match_x("", "sqm_enable", "0", "value=0"); %> >
                                                     </div>
                                                 </div>
                                                 <div style="position: absolute; margin-left: -10000px;">
-                                                    <input type="radio" value="1" name="agh_enabled" id="agh_enabled_1" <% nvram_match_x("", "agh_enabled", "1", "checked"); %>><#checkbox_Yes#>
-                                                    <input type="radio" value="0" name="agh_enabled" id="agh_enabled_0" <% nvram_match_x("", "agh_enabled", "0", "checked"); %>><#checkbox_No#>
-                                                </div>
-                                            </td>
-                                            <td colspan="2" style="border-top: 0 none;">
-												<input class="btn btn-success" style="" type="button" value="<#AdGuardHome_WebIf#>" onclick="button_AdGuardHome_wan_port()" tabindex="24">
-											</td>
-                                        </tr>
-                                        <tr id="adguard_replace_dns">
-                                            <th><#AdGuardHome_DisableDNSMasq#></th>
-                                            <td>
-                                                <div class="main_itoggle">
-                                                    <div id="adguard_replace_dns_on_of">
-                                                        <input type="checkbox" id="adguard_replace_dns_fake" <% nvram_match_x("", "adguard_replace_dns", "1", "value=1 checked"); %><% nvram_match_x("", "adguard_replace_dns", "0", "value=0"); %> >
-                                                    </div>
-                                                </div>
-                                                <div style="position: absolute; margin-left: -10000px;">
-                                                    <input type="radio" value="1" name="adguard_replace_dns" id="adguard_replace_dns_1" <% nvram_match_x("", "adguard_replace_dns", "1", "checked"); %>><#checkbox_Yes#>
-                                                    <input type="radio" value="0" name="adguard_replace_dns" id="adguard_replace_dns_0" <% nvram_match_x("", "adguard_replace_dns", "0", "checked"); %>><#checkbox_No#>
+                                                    <input type="radio" value="1" name="sqm_enable" id="sqm_enable_1" onclick="change_sqm_enable();" <% nvram_match_x("", "sqm_enable", "1", "checked"); %>><#checkbox_Yes#>
+                                                    <input type="radio" value="0" name="sqm_enable" id="sqm_enable_0" onclick="change_sqm_enable();" <% nvram_match_x("", "sqm_enable", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
                                         </tr>
-                                        <tr id="adguard_port"> <th><#AdGuardHome_Port#></th>
+                                        <tr id="sqm_qdisc_tr"> <th width="50%">Queue Discipline (qdisc)</th>
                                             <td>
-                                                <input type="text" maxlength="64" class="input" size="64" name="adguard_port" value="<% nvram_get_x("","adguard_port"); %>" />
+                                                <select name="sqm_qdisc" class="input" style="width: 160px">
+                                                    <option value="cake" <% nvram_match_x("", "sqm_qdisc", "cake", "selected"); %>>cake</option>
+                                                    <option value="fq_codel" <% nvram_match_x("", "sqm_qdisc", "fq_codel", "selected"); %>>fq_codel</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr id="sqm_download_tr"> <th width="50%"><#SQM_DL#> (Kbps)</th>
+                                            <td>
+                                                <input type="text" maxlength="64" class="input" size="64" name="sqm_download" value="<% nvram_get_x("","sqm_download"); %>" />
+                                            </td>
+                                        </tr>
+                                        <tr id="sqm_upload_tr"> <th width="50%"><#SQM_UL#> (Kbps)</th>
+                                            <td>
+                                                <input type="text" maxlength="64" class="input" size="64" name="sqm_upload" value="<% nvram_get_x("","sqm_upload"); %>" />
                                             </td>
                                         </tr>
                                         <tr>
@@ -194,8 +205,8 @@ function button_AdGuardHome_wan_port(){
     </div>
 
     </form>
+
     <div id="footer"></div>
 </div>
 </body>
 </html>
-
