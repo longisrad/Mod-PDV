@@ -12,16 +12,16 @@ AGH_WORK_DIR="/tmp/adguardhome"
 AGH_PID="/var/run/adguardhome.pid"
 AGH_LOG="$AGH_WORK_DIR/adguardhome.log"
 
-# Doc cau hinh tu nvram
-AGH_ENABLED=$(nvram get adguardhome_enable)
-AGH_PORT=$(nvram get adguardhome_port)
-AGH_DNS_PORT=$(nvram get adguardhome_dns_port)
-AGH_USER=$(nvram get adguardhome_user)
-AGH_PASS=$(nvram get adguardhome_pass)
+# Doc cau hinh tu nvram (Đồng bộ với Web UI)
+AGH_ENABLED=$(nvram get agh_enable)
+AGH_PORT=$(nvram get agh_port)
+AGH_DNS_PORT=$(nvram get agh_dns_port)
+AGH_USER=$(nvram get agh_user)
+AGH_PASS=$(nvram get agh_pass)
 
 # Gia tri mac dinh neu chua set
 [ -z "$AGH_PORT" ]     && AGH_PORT="3000"
-[ -z "$AGH_DNS_PORT" ] && AGH_DNS_PORT="5335"
+[ -z "$AGH_DNS_PORT" ] && AGH_DNS_PORT="53" # Đổi cổng DNS mặc định sang 53 nếu bạn muốn AGH làm DNS chính trực tiếp, hoặc giữ 5335 tùy nhu cầu của bạn
 [ -z "$AGH_USER" ]     && AGH_USER="admin"
 [ -z "$AGH_PASS" ]     && AGH_PASS=""
 
