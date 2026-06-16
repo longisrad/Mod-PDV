@@ -29,7 +29,7 @@ jobs:
             toolchain/out
             toolchain/toolchain-3.4.x
             toolchain-mipsel/toolchain-3.4.x
-          key: ${{ runner.os }}-padavan-toolchain-v2 # Đổi khóa để ghi nhận cấu trúc out mới
+          key: ${{ runner.os }}-padavan-toolchain-v2 # Khóa định danh cho cache
 
       - name: Biên dịch Toolchain thủ công (Chỉ chạy nếu KHÔNG CÓ CACHE - mất 40-60 phút)
         if: steps.cache-toolchain.outputs.cache-hit != 'true' # Bỏ qua bước này nếu đã tìm thấy cache
@@ -75,17 +75,20 @@ jobs:
           # 1. Khử sạch ký tự xuống dòng Windows (CRLF) nếu có
           sed -i 's/\r$//' clear_tree build_firmware_modify build_firmware clear_tree.sh 2>/dev/null || true
           
-          # 2. Cấp quyền thực thi cứng cho các kịch bản biên dịch
+          # 2. Tự động sửa lỗi chính tả DEF_OVC_CIPH_LIST của tác giả trong defaults.c
+          sed -i 's/DEF_OVC_CIPH_LIST/DEF_OVPNC_CIPH_LIST/g' user/shared/defaults.c 2>/dev/null || true
+          
+          # 3. Cấp quyền thực thi cứng cho các kịch bản biên dịch
           chmod +x clear_tree build_firmware_modify build_firmware clear_tree.sh 2>/dev/null || true
           
-          # 3. Tiến hành dọn dẹp cây biên dịch cũ
+          # 4. Tiến hành dọn dẹp cây biên dịch cũ
           if [ -f "clear_tree" ]; then
               ./clear_tree
           elif [ -f "clear_tree.sh" ]; then
               sh clear_tree.sh
           fi
           
-          # 4. Tìm kiếm động tệp biên dịch bắt đầu bằng build_firmware* để chạy
+          # 5. Tìm kiếm động tệp biên dịch bắt đầu bằng build_firmware* để chạy
           build_script=$(find . -maxdepth 1 -name "build_firmware*" | head -n 1)
           if [ -n "$build_script" ]; then
               echo "Đã tìm thấy tập lệnh biên dịch ROM: $build_script"
