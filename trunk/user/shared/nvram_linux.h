@@ -28,6 +28,13 @@ extern int nvram_invmatch(const char *name, char *invmatch);
 extern int nvram_commit(void);
 extern int nvram_clear(void);
 
+/* --- ADD-ON VARIABLES DEFINITIONS FOR SQM & AGH --- */
+#define SQM_ENABLE       "sqm_enable"
+#define SQM_DOWNLOAD     "sqm_download"
+#define SQM_UPLOAD       "sqm_upload"
+#define SQM_QDISC        "sqm_qdisc"
+#define AGH_ENABLE       "agh_enable"
+#define AGH_PORT         "agh_port"
+/* -------------------------------------------------- */
 
 #endif
-
