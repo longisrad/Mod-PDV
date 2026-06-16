@@ -35,7 +35,7 @@ $j(document).ready(function() {
 
 function initial(){
     show_banner(1);
-    show_menu(5,12,1);
+    show_menu(7, 7, 10); // Sửa thành (7, 7, 10) để sáng đúng Tab 10
     show_footer();
 }
 
