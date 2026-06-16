@@ -21,18 +21,47 @@ jobs:
             pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget \
             libc6-dev-i386
 
-      - name: Tự động tải và chuẩn bị Toolchain (MIPSLE)
+      - name: Thiết lập Bộ nhớ đệm (Cache) cho Toolchain
+        id: cache-toolchain
+        uses: actions/cache@v4 # Sử dụng cache v4 để lưu trữ bộ biên dịch
+        with:
+          path: |
+            toolchain/toolchain-3.4.x
+            toolchain-mipsel/toolchain-3.4.x
+          key: ${{ runner.os }}-padavan-toolchain-v1 # Khóa định danh cho cache
+
+      - name: Biên dịch Toolchain thủ công (Chỉ chạy nếu KHÔNG CÓ CACHE - mất 40-60 phút)
+        if: steps.cache-toolchain.outputs.cache-hit != 'true' # Bỏ qua bước này nếu đã tìm thấy cache từ lần chạy trước
         run: |
-          # Tạo thư mục toolchain-mipsel ở thư mục gốc
-          mkdir -p toolchain-mipsel
-          cd toolchain-mipsel
+          # 1. Định vị thư mục Toolchain thực tế ở thư mục gốc
+          if [ -d "toolchain" ]; then
+              cd toolchain
+          elif [ -d "toolchain-mipsel" ]; then
+              cd toolchain-mipsel
+          else
+              echo "LỖI: Không tìm thấy thư mục Toolchain trong kho nguồn!"
+              exit 1
+          fi
           
-          # Tải trực tiếp script tải toolchain chính thức từ Hanwckf
-          wget --no-check-certificate https://raw.githubusercontent.com/hanwckf/rt-n56u/master/toolchain-mipsel/dl_toolchain.sh
-          chmod +x dl_toolchain.sh
+          # 2. Cấp quyền chạy cho các kịch bản biên dịch trong thư mục
+          chmod +x clean_sources build_toolchain clean_sources.sh build_toolchain.sh 2>/dev/null || true
           
-          # Thực thi tải về bộ toolchain tiền biên dịch mipsle
-          sh dl_toolchain.sh
+          # 3. Tiến hành dọn dẹp mã nguồn cũ
+          if [ -f "clean_sources" ]; then
+              ./clean_sources
+          elif [ -f "clean_sources.sh" ]; then
+              sh clean_sources.sh
+          fi
+          
+          # 4. Kích hoạt tiến trình tự dựng (build) Toolchain cho chip MIPSLE
+          if [ -f "build_toolchain" ]; then
+              ./build_toolchain
+          elif [ -f "build_toolchain.sh" ]; then
+              sh build_toolchain.sh
+          else
+              echo "LỖI: Không tìm thấy tệp lệnh build_toolchain!"
+              exit 1
+          fi
 
       - name: Tiến hành dọn dẹp và Biên dịch ROM
         run: |
