@@ -438,20 +438,8 @@ struct nvram_pair router_defaults[] = {
 	{ "vts_num_x", "0" },
 	{ "sp_battle_ips", "0" },
 	{ "fw_log_x", "none" },
-	{ "misc_http_x", "0" },
-	{ "misc_httpport_x", "8080" },
-	{ "https_wopen", "0" },
-	{ "https_wport", "8443" },
-	{ "udpxy_wopen", "0" },
-	{ "udpxy_wport", "34040" },
-	{ "ftpd_wopen", "0" },
-	{ "ftpd_wport", "21" },
-	{ "sshd_wopen", "0" },
-	{ "sshd_wport", "10022" },
-	{ "sshd_wbfp", "2" },
-	{ "misc_lpr_x", "0" },
-	{ "misc_ping_x", "0" },
-	{ "fw_lw_enable_x", "0" },
+	{ "fw_syn_cook", "0" },
+	{ "fw_mac_drop", "0" },
 	{ "filter_lw_date_x", "1111111" },
 	{ "filter_lw_time_x", "00002359" },
 	{ "filter_lw_default_x", "ACCEPT" },
@@ -662,6 +650,16 @@ struct nvram_pair router_defaults[] = {
 	{ "dnscrypt_listen_port", "65053" },
 	{ "dnscrypt_mode", "1" },
 #endif
+
+	/* --- TÍNH NĂNG ADD-ON: SQM CAKE & ADGUARD HOME TRÊN NEWIFI 3 D2 --- */
+	{ "sqm_enable", "0" },          /* Trạng thái SQM (0: Tắt, 1: Bật) */
+	{ "sqm_download", "100000" },   /* Băng thông Download mặc định 100Mbps (Kbps) */
+	{ "sqm_upload", "50000" },      /* Băng thông Upload mặc định 50Mbps (Kbps) */
+	{ "sqm_qdisc", "cake" },        /* Thuật toán hàng đợi tối ưu (cake hoặc fq_codel) */
+	{ "agh_enable", "0" },          /* Trạng thái AdGuard Home (0: Tắt, 1: Bật) */
+	{ "agh_port", "3000" },         /* Cổng vào Dashboard WebUI của AdGuard Home */
+	/* ----------------------------------------------------------------- */
+
 	{ "lltd_enable", "1" },
 	{ "adsc_enable", "0" },
 	{ "crond_enable", "0" },
@@ -822,7 +820,7 @@ struct nvram_pair router_defaults[] = {
 	{ "vpnc_ov_auth", "0" },
 	{ "vpnc_ov_mdig", "1" },
 	{ "vpnc_ov_ciph", "15" },
-	{ "vpnc_ov_ncp_clist", DEF_OVPNC_CIPH_LIST },
+	{ "vpnc_ov_ncp_clist", DEF_OVC_CIPH_LIST },
 	{ "vpnc_ov_compress", "0" },
 	{ "vpnc_ov_atls", "0" },
 #if defined (APP_WIREGUARD)
