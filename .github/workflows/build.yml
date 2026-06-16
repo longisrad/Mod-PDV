@@ -26,12 +26,13 @@ jobs:
         uses: actions/cache@v4 # Sử dụng cache v4 để lưu trữ bộ biên dịch
         with:
           path: |
+            toolchain/out
             toolchain/toolchain-3.4.x
             toolchain-mipsel/toolchain-3.4.x
-          key: ${{ runner.os }}-padavan-toolchain-v1 # Khóa định danh cho cache
+          key: ${{ runner.os }}-padavan-toolchain-v2 # Đổi khóa để ghi nhận cấu trúc out mới
 
       - name: Biên dịch Toolchain thủ công (Chỉ chạy nếu KHÔNG CÓ CACHE - mất 40-60 phút)
-        if: steps.cache-toolchain.outputs.cache-hit != 'true' # Bỏ qua bước này nếu đã tìm thấy cache từ lần chạy trước
+        if: steps.cache-toolchain.outputs.cache-hit != 'true' # Bỏ qua bước này nếu đã tìm thấy cache
         run: |
           # 1. Định vị thư mục Toolchain thực tế ở thư mục gốc
           if [ -d "toolchain" ]; then
@@ -84,13 +85,16 @@ jobs:
               sh clear_tree.sh
           fi
           
-          # 4. Kích hoạt tiến trình biên dịch đóng gói ROM
-          if [ -f "build_firmware_modify" ]; then
-              ./build_firmware_modify NEWIFI3
-          elif [ -f "build_firmware" ]; then
-              ./build_firmware NEWIFI3
+          # 4. Tìm kiếm động tệp biên dịch bắt đầu bằng build_firmware* để chạy
+          build_script=$(find . -maxdepth 1 -name "build_firmware*" | head -n 1)
+          if [ -n "$build_script" ]; then
+              echo "Đã tìm thấy tập lệnh biên dịch ROM: $build_script"
+              chmod +x "$build_script"
+              $build_script NEWIFI3
           else
               echo "LỖI: Không tìm thấy tập lệnh biên dịch ROM!"
+              echo "--- Danh sách file trong thư mục trunk để chẩn đoán ---"
+              ls -la
               exit 1
           fi
 
