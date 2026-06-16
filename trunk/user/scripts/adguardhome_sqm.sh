@@ -8,42 +8,18 @@ func_nvram_get() {
 }
 
 start_agh() {
-    agh_enable=$(func_nvram_get agh_enable)
-    agh_port=$(func_nvram_get agh_port)
-    [ -z "$agh_port" ] && agh_port="3000"
-    
-    if [ "$agh_enable" = "1" ]; then
-        # Kiểm tra file thực thi AdGuard Home trong hệ thống
-        if [ ! -f "/usr/bin/AdGuardHome" ] && [ ! -f "/sbin/AdGuardHome" ]; then
-            logger -t "AdGuardHome" "Lỗi: Không tìm thấy file chạy AdGuardHome trong /usr/bin hoặc /sbin!"
-            return 1
-        fi
-        
-        AGH_BIN="/usr/bin/AdGuardHome"
-        [ ! -f "$AGH_BIN" ] && AGH_BIN="/sbin/AdGuardHome"
-        
-        # Thư mục cấu hình (Flash) và Thư mục Cache/Log (RAM)
-        CONF_DIR="/etc/storage/AdGuardHome"
-        WORK_DIR="/tmp/AdGuardHome"
-        CONF_FILE="$CONF_DIR/AdGuardHome.yaml"
-        
-        mkdir -p "$CONF_DIR"
-        mkdir -p "$WORK_DIR"
-        
-        if pidof AdGuardHome > /dev/null; then
-            logger -t "AdGuardHome" "Dịch vụ đã đang chạy."
-            return 0
-        fi
-        
-        logger -t "AdGuardHome" "Đang khởi động AdGuard Home (Cổng WebUI: $agh_port)..."
-        $AGH_BIN -c "$CONF_FILE" -w "$WORK_DIR" --no-check-update > /dev/null 2>&1 &
+    # Gọi sang script chuyên dụng adguardhome.sh để khởi động
+    if [ -f "/usr/bin/adguardhome.sh" ]; then
+        /usr/bin/adguardhome.sh start
+    else
+        logger -t "AdGuardHome" "Lỗi: Không tìm thấy kịch bản /usr/bin/adguardhome.sh"
     fi
 }
 
 stop_agh() {
-    if pidof AdGuardHome > /dev/null; then
-        logger -t "AdGuardHome" "Đang dừng AdGuard Home..."
-        killall -9 AdGuardHome > /dev/null 2>&1
+    # Gọi sang script chuyên dụng adguardhome.sh để tắt
+    if [ -f "/usr/bin/adguardhome.sh" ]; then
+        /usr/bin/adguardhome.sh stop
     fi
 }
 
