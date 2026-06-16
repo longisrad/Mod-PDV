@@ -603,7 +603,7 @@
 			{"sqm_qdisc", "", NULL, EVM_RESTART_FIREWALL},
 			{"agh_enable", "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
 			{"agh_port", "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
-	/* ---------------------------------------------------------
+/* --------------------------------------------------------- */
 #if defined (SUPPORT_WPAD)
 			{"scripts.wpad.dat", "File", NULL, EVM_BLOCK_UNSAFE},
 #endif
