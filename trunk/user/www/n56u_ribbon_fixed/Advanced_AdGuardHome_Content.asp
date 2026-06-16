@@ -35,10 +35,10 @@ $j(document).ready(function() {
 
 function initial(){
     show_banner(1);
-    show_menu(5,11,1);
+    show_menu(7, 7, 9); // Sửa thành (7, 7, 9) để sáng đúng Tab 9
     show_footer();
-	if (!login_safe())
-		textarea_scripts_enabled(0);
+    if (!login_safe())
+        textarea_scripts_enabled(0);
 }
 
 function applyRule(){
