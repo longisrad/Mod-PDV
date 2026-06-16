@@ -596,6 +596,14 @@
 			{"dnscrypt_listen_port", "", NULL, EVM_RESTART_DNSCRYPT|EVM_RESTART_DHCPD},
 			{"dnscrypt_mode", "", NULL, EVM_RESTART_DNSCRYPT|EVM_RESTART_DHCPD},
 #endif
+/* --- TÍNH NĂNG ADD-ON: ĐỒNG BỘ BIẾN SQM & ADGUARD HOME --- */
+			{"sqm_enable", "", NULL, EVM_RESTART_FIREWALL},
+			{"sqm_download", "", NULL, EVM_RESTART_FIREWALL},
+			{"sqm_upload", "", NULL, EVM_RESTART_FIREWALL},
+			{"sqm_qdisc", "", NULL, EVM_RESTART_FIREWALL},
+			{"agh_enable", "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
+			{"agh_port", "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
+	/* ---------------------------------------------------------
 #if defined (SUPPORT_WPAD)
 			{"scripts.wpad.dat", "File", NULL, EVM_BLOCK_UNSAFE},
 #endif
