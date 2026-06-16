@@ -21,20 +21,53 @@ jobs:
             pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget \
             libc6-dev-i386
 
-      - name: Tải Toolchain tiền biên dịch (MIPSLE - Tìm kiếm tự động)
+      - name: Biên dịch Toolchain thủ công (Thời gian chạy khoảng 40-60 phút)
         run: |
-          # Tìm vị trí thực tế của script tải toolchain trong kho nguồn
-          find_toolchain=$(find . -name "dl_toolchain.sh" | head -n 1)
-          if [ -n "$find_toolchain" ]; then
-              toolchain_dir=$(dirname "$find_toolchain")
-              echo "Đã tìm thấy thư mục Toolchain tại: $toolchain_dir"
-              cd "$toolchain_dir"
-              sh dl_toolchain.sh
+          # 1. Định vị thư mục Toolchain thực tế ở thư mục gốc
+          if [ -d "toolchain" ]; then
+              cd toolchain
+          elif [ -d "toolchain-mipsel" ]; then
+              cd toolchain-mipsel
           else
-              echo "LỖI: Không tìm thấy file dl_toolchain.sh trong kho nguồn!"
+              echo "LỖI: Không tìm thấy thư mục Toolchain trong kho nguồn!"
+              exit 1
+          fi
+          
+          # 2. Cấp quyền chạy cho các kịch bản biên dịch trong thư mục
+          chmod +x clean_sources build_toolchain clean_sources.sh build_toolchain.sh 2>/dev/null || true
+          
+          # 3. Tiến hành dọn dẹp mã nguồn cũ
+          if [ -f "clean_sources" ]; then
+              ./clean_sources
+          elif [ -f "clean_sources.sh" ]; then
+              sh clean_sources.sh
+          fi
+          
+          # 4. Kích hoạt tiến trình tự dựng (build) Toolchain cho chip MIPSLE
+          if [ -f "build_toolchain" ]; then
+              ./build_toolchain
+          elif [ -f "build_toolchain.sh" ]; then
+              sh build_toolchain.sh
+          else
+              echo "LỖI: Không tìm thấy tệp lệnh build_toolchain!"
               exit 1
           fi
 
+      - name: Tiến hành dọn dẹp và Biên dịch ROM
+        run: |
+          # Sao chép cấu hình build.config từ thư mục gốc đè vào file mẫu của board và file đích .config
+          cp -f build.config trunk/configs/templates/NEWIFI3.config
+          cp -f build.config trunk/.config
+          
+          cd trunk
+          ./clear_tree
+          ./build_firmware_modify NEWIFI3
+
+      - name: Đóng gói và Upload Firmware lên Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Padavan_NEWIFI3_Firmware
+          path: trunk/images/*.trx
       - name: Tiến hành dọn dẹp và Biên dịch ROM (Tìm kiếm tự động)
         run: |
           # Tìm vị trí thực tế của tệp biên dịch trong kho nguồn
