@@ -656,8 +656,11 @@ struct nvram_pair router_defaults[] = {
 	{ "sqm_download", "100000" },   /* Băng thông Download mặc định 100Mbps (Kbps) */
 	{ "sqm_upload", "50000" },      /* Băng thông Upload mặc định 50Mbps (Kbps) */
 	{ "sqm_qdisc", "cake" },        /* Thuật toán hàng đợi tối ưu (cake hoặc fq_codel) */
-	{ "agh_enable", "0" },          /* Trạng thái AdGuard Home (0: Tắt, 1: Bật) */
-	{ "agh_port", "3000" },         /* Cổng vào Dashboard WebUI của AdGuard Home */
+	{ "agh_enable",   "0"      },  /* Trạng thái AdGuard Home (0: Tắt, 1: Bật) */
+    { "agh_port",     "3000"   },  /* Cổng vào Dashboard WebUI của AdGuard Home */
+    { "agh_dns_port", "53"     },  /* Cổng DNS của AdGuard Home */
+    { "agh_user",     "admin"  },  /* Tài khoản đăng nhập AdGuard Home */
+    { "agh_pass",     ""       },  /* Mật khẩu đăng nhập AdGuard Home */
 	/* ----------------------------------------------------------------- */
 
 	{ "lltd_enable", "1" },
