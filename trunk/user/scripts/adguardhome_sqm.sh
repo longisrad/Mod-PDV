@@ -41,10 +41,12 @@ get_wan_interface() {
 }
 
 start_agh() {
+    if [ "$(func_nvram_get agh_enable)" != "1" ]; then
+        logger -t "AdGuardHome" "Disabled, skipping."
+        return 0
+    fi
     if [ -f "/usr/bin/adguardhome.sh" ]; then
         sh /usr/bin/adguardhome.sh start
-    else
-        logger -t "AdGuardHome" "Lỗi: Không tìm thấy kịch bản /usr/bin/adguardhome.sh"
     fi
 }
 
