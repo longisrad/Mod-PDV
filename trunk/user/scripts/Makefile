@@ -10,6 +10,7 @@ romfs:
 	$(ROMFSINST) /sbin/reset_ss.sh
 	$(ROMFSINST) /sbin/mtd_storage.sh
 	$(ROMFSINST) /sbin/adguardhome_sqm.sh
+    $(ROMFSINST) -a "+x" /sbin/adguardhome_sqm.sh
 ifeq ($(STORAGE_ENABLED),y)
 	$(ROMFSINST) /sbin/automount.sh
 endif
