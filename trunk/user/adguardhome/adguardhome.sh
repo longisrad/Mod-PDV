@@ -176,7 +176,32 @@ agh_status() {
 }
 
 agh_create_config() {
-    # ... (giữ nguyên hàm này từ file gốc của bạn)
+    logger -t "adguardhome" "Creating default config..."
+
+    LAN_IP=$(nvram get lan_ipaddr)
+    [ -z "$LAN_IP" ] && LAN_IP="192.168.1.1"
+
+    # ✅ Nếu pass rỗng → không tạo user, để AGH hiện wizard
+    if [ -z "$AGH_PASS" ]; then
+        USERS_BLOCK="users: []"
+    else
+        USERS_BLOCK="users:
+  - name: ${AGH_USER}
+    password: ${AGH_PASS}"
+    fi
+
+    cat > "$AGH_CONF" << EOF
+http:
+  pprof:
+    port: 6060
+    enabled: false
+  address: 0.0.0.0:${AGH_PORT}
+  session_ttl: 720h
+${USERS_BLOCK}
+auth_attempts: 5
+block_auth_min: 15
+# ... phần còn lại giữ nguyên
+EOF
 }
 
 ###########################
