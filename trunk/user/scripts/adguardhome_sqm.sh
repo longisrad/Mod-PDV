@@ -8,18 +8,18 @@ func_nvram_get() {
 }
 
 start_agh() {
-    # Gọi sang script chuyên dụng adguardhome.sh để khởi động
+    # Gọi sang script chuyên dụng adguardhome.sh kèm tiền tố sh
     if [ -f "/usr/bin/adguardhome.sh" ]; then
-        /usr/bin/adguardhome.sh start
+        sh /usr/bin/adguardhome.sh start
     else
         logger -t "AdGuardHome" "Lỗi: Không tìm thấy kịch bản /usr/bin/adguardhome.sh"
     fi
 }
 
 stop_agh() {
-    # Gọi sang script chuyên dụng adguardhome.sh để tắt
+    # Gọi sang script chuyên dụng adguardhome.sh kèm tiền tố sh
     if [ -f "/usr/bin/adguardhome.sh" ]; then
-        /usr/bin/adguardhome.sh stop
+        sh /usr/bin/adguardhome.sh stop
     fi
 }
 
