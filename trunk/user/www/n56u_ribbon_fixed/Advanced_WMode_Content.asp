@@ -199,7 +199,11 @@ function showLANIPList(){
 
 	if(wds_aplist != ""){
 		for(var i = 0; i < wds_aplist.length ; i++){
-			wds_aplist[i][0] = decodeSSID(wds_aplist[i][0]);
+			try {
+    wds_aplist[i][0] = decodeURIComponent(decodeSSID(wds_aplist[i][0]));
+} catch (e) {
+    wds_aplist[i][0] = decodeSSID(wds_aplist[i][0]);
+}
 			if(wds_aplist[i][0] && wds_aplist[i][0].length > 16)
 				show_name = wds_aplist[i][0].substring(0, 14) + "..";
 			else
