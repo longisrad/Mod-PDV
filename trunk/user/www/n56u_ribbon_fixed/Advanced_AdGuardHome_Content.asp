@@ -104,7 +104,7 @@ function button_AdGuardHome_wan_port(){
     <input type="hidden" name="sid_list" value="ExtraApplications;">
     <input type="hidden" name="group_id" value="">
     <input type="hidden" name="action_mode" value="">
-    <input type="hidden" name="action_script" value="">
+    <input type="hidden" name="action_script" value="restart_firewall">
 
     <div class="container-fluid">
         <div class="row-fluid">
