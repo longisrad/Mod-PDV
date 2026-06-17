@@ -36,31 +36,35 @@ agh_is_running() {
 
 free_port53() {
     logger -t "adguardhome" "Freeing port 53 from dnsmasq..."
-    [ -f "$DNSMASQ_MAIN_CONF" ] && cp "$DNSMASQ_MAIN_CONF" "$DNSMASQ_BAK"
-    sed -i '/^port=/d' "$DNSMASQ_MAIN_CONF" 2>/dev/null
-    echo "port=0" >> "$DNSMASQ_MAIN_CONF"
+
     LAN_IP=$(nvram get lan_ipaddr)
     [ -z "$LAN_IP" ] && LAN_IP="192.168.1.1"
-    sed -i '/^dhcp-option=6/d' "$DNSMASQ_MAIN_CONF" 2>/dev/null
-    echo "dhcp-option=6,$LAN_IP" >> "$DNSMASQ_MAIN_CONF"
-    rm -f "$DNSMASQ_AGH_CONF" 2>/dev/null
+
+    # Lưu giá trị cũ để restore sau
+    nvram set agh_bak_dnsmasq_port=$(nvram get dnsmasq_port)
+
+    # Set nvram tắt DNS dnsmasq
+    nvram set dnsmasq_port=0
+
+    # Trigger Padavan regenerate dnsmasq.conf và restart
     killall -HUP dnsmasq 2>/dev/null
-    sleep 1
-    logger -t "adguardhome" "Port 53 freed. dnsmasq now DHCP-only."
+    sleep 3
+
+    logger -t "adguardhome" "Port 53 freed."
 }
 
 restore_port53() {
-    logger -t "adguardhome" "Restoring dnsmasq DNS on port 53..."
-    if [ -f "$DNSMASQ_BAK" ]; then
-        cp "$DNSMASQ_BAK" "$DNSMASQ_MAIN_CONF"
-        rm -f "$DNSMASQ_BAK"
-    else
-        sed -i '/^port=0/d' "$DNSMASQ_MAIN_CONF" 2>/dev/null
-    fi
-    rm -f "$DNSMASQ_AGH_CONF" 2>/dev/null
+    logger -t "adguardhome" "Restoring dnsmasq..."
+
+    # Khôi phục port cũ
+    OLD_PORT=$(nvram get agh_bak_dnsmasq_port)
+    [ -z "$OLD_PORT" ] && OLD_PORT="53"
+    nvram set dnsmasq_port=$OLD_PORT
+
     killall -HUP dnsmasq 2>/dev/null
-    sleep 1
-    logger -t "adguardhome" "dnsmasq restored: DNS + DHCP on port 53."
+    sleep 2
+
+    logger -t "adguardhome" "dnsmasq restored."
 }
 
 agh_setup_dns() {
