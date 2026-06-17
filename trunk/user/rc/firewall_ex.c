@@ -2282,7 +2282,7 @@ start_firewall_ex(void)
 
 	/* Khởi chạy hoặc khởi động lại AdGuard Home & SQM khi tường lửa thay đổi */
 	if (check_if_file_exist(adg_sqm_script))
-		doSystem("%s restart &", adg_sqm_script);
+		doSystem("%sh restart &", adg_sqm_script);
 
 	if (check_if_file_exist(int_iptables_script))
 		doSystem("%s", int_iptables_script);
