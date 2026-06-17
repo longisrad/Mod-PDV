@@ -21,7 +21,7 @@ AGH_PASS=$(nvram get agh_pass)
 
 # Gia tri mac dinh neu chua set
 [ -z "$AGH_PORT" ]     && AGH_PORT="3000"
-[ -z "$AGH_DNS_PORT" ] && AGH_DNS_PORT="53" # Đổi cổng DNS mặc định sang 53 nếu bạn muốn AGH làm DNS chính trực tiếp, hoặc giữ 5335 tùy nhu cầu của bạn
+[ -z "$AGH_DNS_PORT" ] && AGH_DNS_PORT="5335" # Đổi cổng DNS mặc định sang 53 nếu bạn muốn AGH làm DNS chính trực tiếp, hoặc giữ 5335 tùy nhu cầu của bạn
 [ -z "$AGH_USER" ]     && AGH_USER="admin"
 [ -z "$AGH_PASS" ]     && AGH_PASS=""
 
