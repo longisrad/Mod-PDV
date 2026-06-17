@@ -176,12 +176,12 @@ agh_status() {
 }
 
 agh_create_config() {
+agh_create_config() {
     logger -t "adguardhome" "Creating default config..."
 
     LAN_IP=$(nvram get lan_ipaddr)
     [ -z "$LAN_IP" ] && LAN_IP="192.168.1.1"
 
-    # ✅ Nếu pass rỗng → không tạo user, để AGH hiện wizard
     if [ -z "$AGH_PASS" ]; then
         USERS_BLOCK="users: []"
     else
@@ -192,18 +192,56 @@ agh_create_config() {
 
     cat > "$AGH_CONF" << EOF
 http:
-  pprof:
-    port: 6060
-    enabled: false
   address: 0.0.0.0:${AGH_PORT}
   session_ttl: 720h
 ${USERS_BLOCK}
 auth_attempts: 5
 block_auth_min: 15
-# ... phần còn lại giữ nguyên
+dns:
+  bind_hosts:
+    - 0.0.0.0
+  port: ${AGH_DNS_PORT}
+  upstream_dns:
+    - https://dns10.quad9.net/dns-query
+    - https://cloudflare-dns.com/dns-query
+  bootstrap_dns:
+    - 9.9.9.10
+    - 149.112.112.10
+  cache_size: 4194304
+  cache_optimistic: true
+  ratelimit: 20
+  refuse_any: true
+  serve_plain_dns: true
+querylog:
+  dir_path: ${AGH_WORK_DIR}
+  interval: 24h
+  enabled: true
+  file_enabled: false
+statistics:
+  dir_path: ${AGH_WORK_DIR}
+  interval: 24h
+  enabled: true
+filters:
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+    name: AdGuard DNS filter
+    id: 1
+filtering:
+  filtering_enabled: true
+  protection_enabled: true
+  filters_update_interval: 24
+dhcp:
+  enabled: false
+log:
+  enabled: true
+  max_size: 100
+os:
+  rlimit_nofile: 0
+schema_version: 29
 EOF
-}
 
+    logger -t "adguardhome" "Config created at $AGH_CONF"
+}
 ###########################
 # Main
 ###########################
