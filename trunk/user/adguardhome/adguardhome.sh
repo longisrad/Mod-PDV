@@ -108,7 +108,7 @@ agh_start() {
     [ ! -f "$AGH_CONF" ] && agh_create_config
 
     agh_setup_dns
-    sleep 1
+    sleep 3
 
     "$AGH_BIN" \
         --config "$AGH_CONF" \
