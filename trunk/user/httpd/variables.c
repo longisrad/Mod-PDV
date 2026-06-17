@@ -780,17 +780,17 @@
 		};
 	
 	struct variable variables_ExtraApplications[] = {
-    {"sqm_enable",    "", NULL, EVM_RESTART_FIREWALL},
-    {"sqm_download",  "", NULL, EVM_RESTART_FIREWALL},
-    {"sqm_upload",    "", NULL, EVM_RESTART_FIREWALL},
-    {"sqm_qdisc",     "", NULL, EVM_RESTART_FIREWALL},
-    {"agh_enable",    "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
-    {"agh_port",      "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
-    {"agh_dns_port",  "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD}, // ← thêm
-    {"agh_user",      "", NULL, EVM_RESTART_FIREWALL},                    // ← thêm
-    {"agh_pass",      "", NULL, EVM_RESTART_FIREWALL},                    // ← thêm
-    {0,0,0,0}
-        };
+			{"sqm_enable",   "", NULL, EVM_RESTART_FIREWALL},
+			{"sqm_download", "", NULL, EVM_RESTART_FIREWALL},
+			{"sqm_upload",   "", NULL, EVM_RESTART_FIREWALL},
+			{"sqm_qdisc",    "", NULL, EVM_RESTART_FIREWALL},
+			{"agh_enable",   "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
+			{"agh_port",     "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
+			{"agh_dns_port", "", NULL, EVM_RESTART_FIREWALL|EVM_RESTART_DHCPD},
+			{"agh_user",     "", NULL, EVM_RESTART_FIREWALL},
+			{"agh_pass",     "", NULL, EVM_RESTART_FIREWALL},
+			{0,0,0,0}
+		};
 
 	struct variable variables_DeviceSecurity11a[] = {
 #if BOARD_HAS_5G_RADIO
