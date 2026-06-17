@@ -31,9 +31,9 @@ romfs:
 	$(ROMFSINST) -e CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME \
 		adguardhome.sh /usr/bin/adguardhome.sh
     $(ROMFSINST) -e CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME \
-        -a "+x" /usr/bin/adguardhome.sh
-    $(ROMFSINST) -e CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME \
-        -a "+x" /usr/bin/AdGuardHome
+		-a "+x" /usr/bin/adguardhome.sh
+	$(ROMFSINST) -e CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME \
+		-a "+x" /usr/bin/AdGuardHome
 clean:
 	rm -f $(AGH_BINARY).tar.gz
 	rm -rf $(AGH_SRC)
