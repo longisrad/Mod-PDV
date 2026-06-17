@@ -7,8 +7,40 @@ func_nvram_get() {
     nvram get "$1"
 }
 
+# ✅ HÀM MỚI: Tự động detect WAN interface đang thực sự dùng
+get_wan_interface() {
+    # Ưu tiên 1: Đọc từ nvram
+    local iface=$(func_nvram_get wan_ifname)
+
+    # Ưu tiên 2: Lấy từ default route (chính xác nhất khi đang online)
+    if [ -z "$iface" ]; then
+        iface=$(ip route show default 2>/dev/null | awk '{print $5}' | head -1)
+    fi
+
+    # Ưu tiên 3: Tìm interface có địa chỉ IP public (không phải lo, br0, eth0...)
+    if [ -z "$iface" ]; then
+        iface=$(ip -o addr show | awk '
+            $2 !~ /^(lo|br|eth0|ra|rai)/ &&
+            $3 == "inet" &&
+            $4 !~ /^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[01])\./ {
+                print $2; exit
+            }')
+    fi
+
+    # Fallback cuối: Thử các interface phổ biến theo thứ tự
+    if [ -z "$iface" ]; then
+        for try_if in apclii0 apcli0 eth2.2 eth3 eth2; do
+            if ip link show "$try_if" > /dev/null 2>&1; then
+                iface="$try_if"
+                break
+            fi
+        done
+    fi
+
+    echo "$iface"
+}
+
 start_agh() {
-    # Gọi sang script chuyên dụng adguardhome.sh kèm tiền tố sh
     if [ -f "/usr/bin/adguardhome.sh" ]; then
         sh /usr/bin/adguardhome.sh start
     else
@@ -17,7 +49,6 @@ start_agh() {
 }
 
 stop_agh() {
-    # Gọi sang script chuyên dụng adguardhome.sh kèm tiền tố sh
     if [ -f "/usr/bin/adguardhome.sh" ]; then
         sh /usr/bin/adguardhome.sh stop
     fi
@@ -28,28 +59,29 @@ start_sqm() {
     sqm_download=$(func_nvram_get sqm_download)
     sqm_upload=$(func_nvram_get sqm_upload)
     sqm_qdisc=$(func_nvram_get sqm_qdisc)
-    
-    # Tự động nhận diện Interface mạng WAN
-    wan_if=$(func_nvram_get wan_ifname)
-    [ -z "$wan_if" ] && wan_if="eth3" # Mặc định cổng WAN của Newifi D2 thường là eth3
-    
+
+    # ✅ Dùng hàm detect mới
+    wan_if=$(get_wan_interface)
+
+    if [ -z "$wan_if" ]; then
+        logger -t "SQM" "Lỗi: Không tìm thấy WAN interface!"
+        return 1
+    fi
+
     if [ "$sqm_enable" = "1" ]; then
         logger -t "SQM" "Đang kích hoạt SQM trên $wan_if: Down $sqm_download Kbps, Up $sqm_upload Kbps ($sqm_qdisc)..."
-        
-        # Xóa cấu hình cũ trước khi nạp mới
+
         stop_sqm
-        
-        # Nạp các Module Kernel cần thiết
+
         modprobe ifb numifbs=1 > /dev/null 2>&1
         modprobe sch_cake > /dev/null 2>&1
         modprobe sch_fq_codel > /dev/null 2>&1
         modprobe act_mirred > /dev/null 2>&1
         modprobe cls_u32 > /dev/null 2>&1
-        
-        # Kích hoạt card mạng ảo ifb0 để định hình Download (Ingress)
+
         ip link set dev ifb0 up > /dev/null 2>&1
-        
-        # --- 1. ĐỊNH HÌNH UPLOAD (EGRESS trên cổng WAN) ---
+
+        # EGRESS (upload)
         tc qdisc add dev "$wan_if" root handle 1: htb default 10 > /dev/null 2>&1
         tc class add dev "$wan_if" parent 1: classid 1:1 htb rate "${sqm_upload}kbit" ceil "${sqm_upload}kbit" > /dev/null 2>&1
         if [ "$sqm_qdisc" = "cake" ]; then
@@ -57,12 +89,11 @@ start_sqm() {
         else
             tc qdisc add dev "$wan_if" parent 1:1 handle 10: fq_codel limit 1024 target 5ms interval 100ms ecn > /dev/null 2>&1
         fi
-        
-        # --- 2. ĐỊNH HÌNH DOWNLOAD (INGRESS trên cổng WAN -> Chuyển hướng sang ifb0) ---
+
+        # INGRESS (download) -> ifb0
         tc qdisc add dev "$wan_if" handle ffff: ingress > /dev/null 2>&1
         tc filter add dev "$wan_if" parent ffff: protocol all prio 10 u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ifb0 > /dev/null 2>&1
-        
-        # Áp dụng giới hạn tốc độ trên ifb0
+
         tc qdisc add dev ifb0 root handle 1: htb default 10 > /dev/null 2>&1
         tc class add dev ifb0 parent 1: classid 1:1 htb rate "${sqm_download}kbit" ceil "${sqm_download}kbit" > /dev/null 2>&1
         if [ "$sqm_qdisc" = "cake" ]; then
@@ -70,22 +101,20 @@ start_sqm() {
         else
             tc qdisc add dev ifb0 parent 1:1 handle 10: fq_codel limit 1024 target 5ms interval 100ms ecn > /dev/null 2>&1
         fi
-        
-        logger -t "SQM" "Đã kích hoạt SQM thành công."
+
+        logger -t "SQM" "Đã kích hoạt SQM thành công trên $wan_if."
     fi
 }
 
 stop_sqm() {
-    wan_if=$(func_nvram_get wan_ifname)
+    # ✅ Detect lại khi stop để đúng interface
+    wan_if=$(get_wan_interface)
     [ -z "$wan_if" ] && wan_if="eth3"
-    
+
     logger -t "SQM" "Đang gỡ bỏ SQM trên giao diện $wan_if..."
-    
-    # Xóa luật trên card WAN chính
+
     tc qdisc del dev "$wan_if" root > /dev/null 2>&1
     tc qdisc del dev "$wan_if" ingress > /dev/null 2>&1
-    
-    # Xóa luật trên card ảo ifb0
     tc qdisc del dev ifb0 root > /dev/null 2>&1
     ip link set dev ifb0 down > /dev/null 2>&1
 }
