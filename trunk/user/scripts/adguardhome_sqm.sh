@@ -9,15 +9,15 @@ func_nvram_get() {
 
 # ✅ HÀM MỚI: Tự động detect WAN interface đang thực sự dùng
 get_wan_interface() {
-    # Ưu tiên 1: Đọc từ nvram
-    local iface=$(func_nvram_get wan_ifname)
+    # Ưu tiên 1: Default route - chính xác nhất
+    local iface=$(ip route show default 2>/dev/null | awk '{print $5}' | head -1)
 
-    # Ưu tiên 2: Lấy từ default route (chính xác nhất khi đang online)
-    if [ -z "$iface" ]; then
-        iface=$(ip route show default 2>/dev/null | awk '{print $5}' | head -1)
+    # Ưu tiên 2: Validate - interface phải có trạng thái UP
+    if [ -n "$iface" ]; then
+        ip link show "$iface" | grep -q "UP" || iface=""
     fi
 
-    # Ưu tiên 3: Tìm interface có địa chỉ IP public (không phải lo, br0, eth0...)
+    # Ưu tiên 3: Tìm interface có IP public
     if [ -z "$iface" ]; then
         iface=$(ip -o addr show | awk '
             $2 !~ /^(lo|br|eth0|ra|rai)/ &&
@@ -27,6 +27,18 @@ get_wan_interface() {
             }')
     fi
 
+    # Fallback: thử theo thứ tự ưu tiên apclii0 trước
+    if [ -z "$iface" ]; then
+        for try_if in apclii0 apcli0 eth2.2 eth3 eth2; do
+            if ip link show "$try_if" > /dev/null 2>&1; then
+                iface="$try_if"
+                break
+            fi
+        done
+    fi
+
+    echo "$iface"
+}
     # Fallback cuối: Thử các interface phổ biến theo thứ tự
     if [ -z "$iface" ]; then
         for try_if in apclii0 apcli0 eth2.2 eth3 eth2; do
